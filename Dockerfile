@@ -79,7 +79,7 @@ RUN apt-get update && \
 
 
 FROM node:21.0.0-bookworm-slim
-LABEL maintainer="manuel.stolze@techem.de,christian.schnapka.extern@techem.de"
+LABEL maintainer="Nolem / Per! <schnapka.christian@googlemail.com>"
 
 # Set versions as build arguments
 ENV PM2_VERSION=5.3.0
