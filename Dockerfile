@@ -78,7 +78,7 @@ RUN apt-get update && \
     echo "Python installed"
 
 
-FROM node:21.0.0-bookworm-slim
+FROM node:22.17.1-bookworm-slim
 LABEL maintainer="Nolem / Per! <schnapka.christian@googlemail.com>"
 
 # Set versions as build arguments
