@@ -1,4 +1,4 @@
-# Node21 image with python and git
+# Node22 image with python and git
 This Dockerfile is composed of multiple stages to build various tools from source, such as Git, jq, and Python, targeting different architectures (arm, x86, x64). It utilizes a multi-stage build process to keep the final image size small.
 
 ## Stages
