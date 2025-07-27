@@ -4,31 +4,136 @@ on:
   push:
     branches:
       - main
+      - develop
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DEST_DOCKER_IMAGE: macstab/nodejs-tools-git-jq-python
 
     steps:
-      - name: debug1
-        run: echo ${{ secrets.DOCKER_HUB_USERNAME }} | base64
-      - name: debug2
-        run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | base64
-      - uses: actions/checkout@v3
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # Step 2: Check commit message
+      - name: Check commit message
+        if: ${{ !startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request' }}
+        id: check_commit
+        run: |
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+          git pull
+          fi
+          commit_message=$(git log --format=%B -n 1 ${{ github.event.after }})
+          if [[ "$commit_message" == "chore(release):"* ]]; then
+            echo "Commit message is a release commit. Skipping build."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Commit message is not a release commit. Proceeding with build."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      # Step 3: Set up Docker Build
       - name: Set up Docker Build
         uses: docker/setup-buildx-action@v3
+        if: steps.check_commit.outputs.skip == 'false'
+
+
+      # Step 4: Login to DockerHub (if not a tag)
       - name: Login to DockerHub
+        if: ${{ steps.check_commit.outputs.skip == 'false' && !startsWith(github.ref, 'refs/tags/') }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-      - name: Build and push
+
+      # Step 5: Build docker image for test only (if not a tag)
+      - name: Build docker image for test only
+        if: ${{ steps.check_commit.outputs.skip == 'false' && !startsWith(github.ref, 'refs/tags/') }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: ${{ env.DEST_DOCKER_IMAGE }}:v0.0.0
+          load: true
+
+      # Step 6: Checkout code again with a bot token
+      - name: Checkout code with bot token
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_GITHUB_TOKEN }}
+
+      # Step 7: Semantic Release (only on main branch)
+      # only in main branch, no tags and no pull requests!!!
+      - name: Semantic Release
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' &&  github.event_name != 'pull_request'
+        id: semantic_release
+        uses: docker://macstab/semantic-release-maven-gradle-nodejs-python-git-jq:1.1.1
+        with:
+          entrypoint: /bin/sh
+          workdir: /home/runner/work/${{ github.repository }}/${{ github.repository }}
+          branches: 'main'
+          args: -c "cp /configs/$CONFIG_FILE .releaserc && git config --global --add safe.directory /github/workspace && npx semantic-release --branches $RELEASE_BRANCH"
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_ENV: production
+          GH_URL: https://github.com/${{ github.repository }}.git
+          RELEASE_BRANCH: main
+          CONFIG_FILE: .releaserc-docker.json
+          DEBUG: semantic-release:*
+
+      # Step 8: Get latest release (only on main branch)
+      - name: Get latest release
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main'
+        id: latest_release
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/${{ github.repository }}/releases/latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 9: Merge main branch into develop branch (on tag event)
+      # Already given by default !!!!
+      - name: Merge main -> develop
+        if: ${{ steps.check_commit.outputs.skip == 'false' && !startsWith(github.ref, 'refs/tags/') && github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        uses: docker://macstab/semantic-release-maven-gradle-nodejs-python-git-jq:1.1.1
+        with:
+          entrypoint: /bin/sh
+          workdir: /home/runner/work/${{ github.repository }}/${{ github.repository }}
+          args: "-c \"set -x && TAG_NAME=${GITHUB_REF#refs/tags/} && echo Release is $TAG_NAME && git config --global --add safe.directory /github/workspace && git config --global user.email '${{ secrets.BOT_USER_EMAIL }}' && git config --global user.name '${{ secrets.BOT_USER_NAME }}' && git fetch -a origin && git fetch origin ${INPUT_FROM_BRANCH} && git checkout ${INPUT_FROM_BRANCH} && git fetch origin ${INPUT_TARGET_BRANCH} && git checkout ${INPUT_TARGET_BRANCH} && git pull && COMMIT_HASH=$(git rev-parse ${TAG_NAME}) && git cherry-pick -Xtheirs $COMMIT_HASH --allow-empty && git push\""
+        env:
+          INPUT_FROM_BRANCH: 'main'
+          INPUT_TARGET_BRANCH: 'develop'
+      # Step 10: Build and push docker image (only on main branch)
+      - name: Build and push docker image
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: macstab/node-python-git-jq-bookworm:latest
+          tags: ${{ env.DEST_DOCKER_IMAGE }}:${{ fromJson(steps.latest_release.outputs.data).tag_name }}
+
+      # Step 11: Push to develop-hash tag (only on develop branch)
+      - name: Push to develop-hash tag
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.DEST_DOCKER_IMAGE }}:develop-${{ github.sha }}
