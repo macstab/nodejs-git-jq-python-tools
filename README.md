@@ -49,47 +49,47 @@ This Dockerfile is composed of multiple stages to build various tools from sourc
 ## Version-Overview
 
 
-| Tool/Dependency      | Version                | Description                                            |
-|----------------------|------------------------|--------------------------------------------------------|
-| Git                  | 2.42.0                 | Version control system                                 |
-| jq                   | 1.7                    | Lightweight and flexible JSON processor                |
-| Python               | 3.12.0                 | Programming language                                   |
-| Node.js              | 21.0.0 (from base)     | JavaScript runtime                                     |
-| pm2                  | 5.3.0                  | Process manager for Node.js applications               |
-| node-gyp             | 9.4.0                  | Tool for compiling native addon modules                |
-| pnpm                 | 8.9.2                  | Fast, disk space-efficient package manager             |
-| Debian Base          | bookworm-slim| Base OS for the builders and final image               |
-| wget                 | (default)              | Network downloader                                     |
-| make                 | (default)              | Build automation tool                                  |
-| gcc                  | (default)              | GNU Compiler Collection                                |
-| autoconf             | (default)              | Tool for configuring source code                       |
-| libssl-dev           | (default)              | SSL development files, libraries                       |
-| libcurl4-openssl-dev | (default)              | Development files for libcurl (OpenSSL)                |
-| libexpat1-dev        | (default)              | XML parsing C library - development kit                |
-| gettext              | (default)              | GNU Internationalization utilities                     |
-| zlib1g-dev           | (default)              | Compression library - development                      |
-| tar                  | (default)              | Utility for manipulating tar archives                  |
-| build-essential      | (default)              | Informational list of build dependencies               |
-| libffi-dev           | (default)              | Foreign Function Interface library                     |
-| libgdbm-dev          | (default)              | GNU dbm database routines (development)                |
-| libc6-dev            | (default)              | GNU C Library: Development Libraries                   |
-| libbz2-dev           | (default)              | Bzip2 compression library - development                |
-| libreadline-dev      | (default)              | GNU readline and history libraries                     |
-| libsqlite3-dev       | (default)              | SQLite 3 development files                             |
-| libncurses5-dev      | (default)              | Developer's libraries for ncurses                      |
-| xz-utils             | (default)              | XZ-format compression utilities                        |
-| tk-dev               | (default)              | Toolkit for TCL and X11 (development)                  |
-| liblzma-dev          | (default)              | XZ-format compression library - dev                    |
-| libgdbm-compat-dev   | (default)              | GNU dbm database routines (legacy support)             |
-| curl                 | (default)              | Data transfer tool with URL syntax                     |
-| ca-certificates      | (default)              | Common CA certificates                                 |
-| fontconfig           | (default)              | Generic font configuration library                     |
-| binutils             | (default)              | GNU assembler, linker and binary utilities             |
-| dumb-init            | (default)              | Simple init system for containers                      |
-| bash                 | (default)              | GNU Bourne Again SHell                                 |
-| openssl              | (default)              | Secure Sockets Layer toolkit - cryptographic utility   |
-| libc6                | (default)              | GNU C Library: Shared libraries                        |
-| libcurl4             | (default)              | Easy-to-use client-side URL transfer library (OpenSSL) |
-| libgcc-s1            | (default)              | GCC support library                                    |
+| Tool/Dependency      | Version             | Description                                            |
+|----------------------|---------------------|--------------------------------------------------------|
+| Git                  | 2.50.1              | Version control system                                 |
+| jq                   | 1.8.1               | Lightweight and flexible JSON processor                |
+| Python               | 3.13.0              | Programming language                                   |
+| Node.js              | 22.17.1 (from base) | JavaScript runtime                                     |
+| pm2                  | 6.0.8               | Process manager for Node.js applications               |
+| node-gyp             | 11.2.0              | Tool for compiling native addon modules                |
+| pnpm                 | 10.13.1             | Fast, disk space-efficient package manager             |
+| Debian Base          | bookworm-slim       | Base OS for the builders and final image               |
+| wget                 | (default)           | Network downloader                                     |
+| make                 | (default)           | Build automation tool                                  |
+| gcc                  | (default)           | GNU Compiler Collection                                |
+| autoconf             | (default)           | Tool for configuring source code                       |
+| libssl-dev           | (default)           | SSL development files, libraries                       |
+| libcurl4-openssl-dev | (default)           | Development files for libcurl (OpenSSL)                |
+| libexpat1-dev        | (default)           | XML parsing C library - development kit                |
+| gettext              | (default)           | GNU Internationalization utilities                     |
+| zlib1g-dev           | (default)           | Compression library - development                      |
+| tar                  | (default)           | Utility for manipulating tar archives                  |
+| build-essential      | (default)           | Informational list of build dependencies               |
+| libffi-dev           | (default)           | Foreign Function Interface library                     |
+| libgdbm-dev          | (default)           | GNU dbm database routines (development)                |
+| libc6-dev            | (default)           | GNU C Library: Development Libraries                   |
+| libbz2-dev           | (default)           | Bzip2 compression library - development                |
+| libreadline-dev      | (default)           | GNU readline and history libraries                     |
+| libsqlite3-dev       | (default)           | SQLite 3 development files                             |
+| libncurses5-dev      | (default)           | Developer's libraries for ncurses                      |
+| xz-utils             | (default)           | XZ-format compression utilities                        |
+| tk-dev               | (default)           | Toolkit for TCL and X11 (development)                  |
+| liblzma-dev          | (default)           | XZ-format compression library - dev                    |
+| libgdbm-compat-dev   | (default)           | GNU dbm database routines (legacy support)             |
+| curl                 | (default)           | Data transfer tool with URL syntax                     |
+| ca-certificates      | (default)           | Common CA certificates                                 |
+| fontconfig           | (default)           | Generic font configuration library                     |
+| binutils             | (default)           | GNU assembler, linker and binary utilities             |
+| dumb-init            | (default)           | Simple init system for containers                      |
+| bash                 | (default)           | GNU Bourne Again SHell                                 |
+| openssl              | (default)           | Secure Sockets Layer toolkit - cryptographic utility   |
+| libc6                | (default)           | GNU C Library: Shared libraries                        |
+| libcurl4             | (default)           | Easy-to-use client-side URL transfer library (OpenSSL) |
+| libgcc-s1            | (default)           | GCC support library                                    |
 
 Please note that the versions marked with (default) indicate that the Dockerfile does not explicitly set a version, thus the installed version would be the one available by default in the Debian bookworm repositories at the time of the image build.
