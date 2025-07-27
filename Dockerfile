@@ -7,7 +7,7 @@ FROM debian:bookworm-slim as git_builder
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GIT_VERSION=2.42.0
+ENV GIT_VERSION=2.50.1
 
 RUN apt-get update && \
     apt-get install -y wget make gcc autoconf libssl-dev libcurl4-openssl-dev libexpat1-dev gettext zlib1g-dev tar && \
@@ -32,7 +32,7 @@ RUN tar -czpf /git.tgz -C /usr/local/libexec/git-core .
 FROM debian:bookworm-slim as jq-builder
 
 # Arguments for versions (if needed)
-ENV JQ_VERSION=1.7
+ENV JQ_VERSION=1.8.1
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies for building jq and oniguruma
@@ -61,7 +61,7 @@ RUN git clone https://github.com/jqlang/jq.git && \
 # Set the base image for the Python builder stage
 FROM debian:bookworm-slim as python-builder
 
-ENV PYTHON_VERSION=3.12.0
+ENV PYTHON_VERSION=3.13.0
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies and build Python from source
@@ -82,26 +82,26 @@ FROM node:22.17.1-bookworm-slim
 LABEL maintainer="Nolem / Per! <schnapka.christian@googlemail.com>"
 
 # Set versions as build arguments
-ENV PM2_VERSION=5.3.0
-ENV NODE_GYP_VERSION=9.4.0
-ENV PNPM_VERSION=8.9.2
+ENV PM2_VERSION=6.0.8
+ENV NODE_GYP_VERSION=11.2.0
+ENV PNPM_VERSION=10.13.1
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Copy necessary files from previous build stages
 COPY --from=git_builder /git.tgz /git.tgz
-COPY --from=python-builder /usr/local/bin/python3.12 /usr/local/bin/python3.12
-COPY --from=python-builder /usr/local/lib/python3.12/venv /usr/local/lib/python3.12/venv
-COPY --from=python-builder /usr/local/lib/python3.12/encodings /usr/local/lib/python3.12/encodings
+COPY --from=python-builder /usr/local/bin/python3.13 /usr/local/bin/python3.13
+COPY --from=python-builder /usr/local/lib/python3.13/venv /usr/local/lib/python3.13/venv
+COPY --from=python-builder /usr/local/lib/python3.13/encodings /usr/local/lib/python3.13/encodings
 COPY --from=jq-builder /usr/local/bin/jq /usr/local/bin/jq
 COPY --from=jq-builder /usr/local/lib/ /usr/local/lib/
 
 # Update symlinks for python and python3
 RUN mkdir -p /usr/local/libexec/git-core && \
     tar -xzvf /git.tgz -C /usr/local/libexec/git-core && \
-    ln -sfn /usr/local/bin/python3.12 /usr/local/bin/python && \
-    ln -sfn /usr/local/bin/python3.12 /usr/local/bin/python3 && \
+    ln -sfn /usr/local/bin/python3.13 /usr/local/bin/python && \
+    ln -sfn /usr/local/bin/python3.13 /usr/local/bin/python3 && \
     ln -sfn /usr/local/libexec/git-core/git /usr/local/bin/git && \
     apt-get update && \
     apt-get install -y --no-install-recommends curl wget ca-certificates fontconfig binutils dumb-init bash openssl libc6 libcurl4 libgcc-s1 && \
