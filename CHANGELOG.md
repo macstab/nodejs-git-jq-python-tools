@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.0.0...1.0.1) (2025-07-27)
+
+
+### Bug Fixes
+
+* update Node image version from 21 to 22 in README. Required new build ([659c1ed](https://github.com/macstab/nodejs-git-jq-python-tools/commit/659c1edbea87e216af17551ade7f34167e33de8c))
+
 # 1.0.0 (2025-07-27)
 
 
