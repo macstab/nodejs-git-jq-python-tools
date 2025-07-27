@@ -1,3 +1,5 @@
+## [1.2.2](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.2.1...1.2.2) (2025-07-27)
+
 ## [1.0.1](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.0.0...1.0.1) (2025-07-27)
 
 

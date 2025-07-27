@@ -1,6 +1,6 @@
 {
   "name": "node-python-git-jq-bookworm",
-  "version": "1.0.1",
+  "version": "1.2.2",
   "description": "Docker image as base for many other images, with git, jq, and python3 installed.",
   "repository": {
     "type": "git",
