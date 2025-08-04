@@ -74,8 +74,18 @@ RUN apt-get update && \
     cd Python-${PYTHON_VERSION} && \
     ./configure --enable-optimizations && \
     make -j `nproc` && \
-    make altinstall && \
+    make install && \
     echo "Python installed"
+#RUN    cd Python-${PYTHON_VERSION} && \
+#       ./configure --enable-optimizations
+#
+#RUN    cd Python-${PYTHON_VERSION} && \
+#       make -j `nproc`
+#
+#RUN    cd Python-${PYTHON_VERSION} && \
+#       make install
+#
+#RUN    echo "Python installed"
 
 
 FROM node:22.17.1-bookworm-slim
@@ -94,6 +104,7 @@ COPY --from=git_builder /git.tgz /git.tgz
 COPY --from=python-builder /usr/local/bin/python3.13 /usr/local/bin/python3.13
 COPY --from=python-builder /usr/local/lib/python3.13/venv /usr/local/lib/python3.13/venv
 COPY --from=python-builder /usr/local/lib/python3.13/encodings /usr/local/lib/python3.13/encodings
+COPY --from=python-builder /usr/local/ /usr/local/
 COPY --from=jq-builder /usr/local/bin/jq /usr/local/bin/jq
 COPY --from=jq-builder /usr/local/lib/ /usr/local/lib/
 
