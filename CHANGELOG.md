@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.2.2...1.3.0) (2025-08-05)
+
+
+### Features
+
+* **python:** add the python libs parallel to the source build and introduced multi arch build. ([#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)) ([c70d545](https://github.com/macstab/nodejs-git-jq-python-tools/commit/c70d545ab3b80a4de39763dfac8c8e2582df3ce3))
+
 ## [1.2.2](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.2.1...1.2.2) (2025-07-27)
 
 ## [1.0.1](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.0.0...1.0.1) (2025-07-27)
