@@ -88,6 +88,22 @@ RUN apt-get update && \
 #RUN    echo "Python installed"
 
 FROM node:22.17.1-bookworm-slim AS node-builder
+ENV NODE_VERSION=22.17.1
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y wget xz-utils ca-certificates && rm -rf /var/lib/apt/lists/*
+
+RUN ARCH="$(dpkg --print-architecture)" && \
+    if [ "$ARCH" = "amd64" ]; then \
+        NODE_ARCH="linux-x64"; \
+    elif [ "$ARCH" = "arm64" ]; then \
+        NODE_ARCH="linux-arm64"; \
+    else \
+        echo "Unsupported architecture $ARCH" && exit 1; \
+    fi && \
+    wget -O node.tar.xz "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-${NODE_ARCH}.tar.xz" && \
+    tar -xJf node.tar.xz -C /usr/local --strip-components=1 && \
+    rm node.tar.xz
 
 FROM debian:bookworm-slim AS tools
 COPY --from=node-builder /usr/local /usr/local
