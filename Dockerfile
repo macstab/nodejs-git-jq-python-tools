@@ -87,6 +87,17 @@ RUN apt-get update && \
 #
 #RUN    echo "Python installed"
 
+FROM node:22.17.1-bookworm-slim AS node-builder
+
+FROM debian:bookworm-slim AS tools
+COPY --from=node-builder /usr/local /usr/local
+COPY --from=git_builder /git.tgz /git.tgz
+COPY --from=python-builder /usr/local/bin/python3.13 /usr/local/bin/python3.13
+COPY --from=python-builder /usr/local/lib/python3.13/venv /usr/local/lib/python3.13/venv
+COPY --from=python-builder /usr/local/lib/python3.13/encodings /usr/local/lib/python3.13/encodings
+COPY --from=python-builder /usr/local/ /usr/local/
+COPY --from=jq-builder /usr/local/bin/jq /usr/local/bin/jq
+COPY --from=jq-builder /usr/local/lib/ /usr/local/lib/
 
 FROM node:22.17.1-bookworm-slim
 LABEL maintainer="Nolem / Per! <schnapka.christian@googlemail.com>"
@@ -99,14 +110,7 @@ ENV PNPM_VERSION=10.13.1
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy necessary files from previous build stages
-COPY --from=git_builder /git.tgz /git.tgz
-COPY --from=python-builder /usr/local/bin/python3.13 /usr/local/bin/python3.13
-COPY --from=python-builder /usr/local/lib/python3.13/venv /usr/local/lib/python3.13/venv
-COPY --from=python-builder /usr/local/lib/python3.13/encodings /usr/local/lib/python3.13/encodings
-COPY --from=python-builder /usr/local/ /usr/local/
-COPY --from=jq-builder /usr/local/bin/jq /usr/local/bin/jq
-COPY --from=jq-builder /usr/local/lib/ /usr/local/lib/
+COPY --from=tools / /
 
 # Update symlinks for python and python3
 RUN mkdir -p /usr/local/libexec/git-core && \
