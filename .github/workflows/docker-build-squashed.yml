@@ -1,0 +1,111 @@
+name: Squash & Publish Slim Image
+
+on:
+  workflow_run:
+    workflows: ["Multi-Arch Docker Image Build and Release"]
+    types: [completed]
+
+env:
+  DEST_DOCKER_IMAGE: macstab/nodejs-tools-git-jq-python
+
+jobs:
+  squash:
+    # Run only if original build succeeded AND was for main/develop (those are the runs that publish images)
+    if: ${{ github.event.workflow_run.conclusion == 'success' &&
+      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'develop') }}
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.determine_tag.outputs.tag }}
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+
+    steps:
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Determine tag used by original image
+        id: determine_tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const headSha = context.payload.workflow_run.head_sha;
+            const headBranch = context.payload.workflow_run.head_branch;
+            const { owner, repo } = context.repo;
+            let tag;
+
+            if (headBranch === 'develop') {
+              tag = `develop-${headSha}`;
+            } else if (headBranch === 'main') {
+              try {
+                const latest = await github.rest.repos.getLatestRelease({ owner, repo });
+                tag = latest.data.tag_name;
+              } catch (e) {
+                tag = `develop-${headSha}`;
+              }
+            } else {
+              // Shouldn't happen due to the job-level IF, but keep a safe fallback
+              tag = `develop-${headSha}`;
+            }
+            core.setOutput('tag', tag);
+
+      - name: Pull original image for ${{ matrix.arch }}
+        run: |
+          docker pull --platform linux/${{ matrix.arch }} ${DEST_DOCKER_IMAGE}:${{ steps.determine_tag.outputs.tag }}
+
+      - name: Squash image for ${{ matrix.arch }}
+        run: |
+          TAG=${{ steps.determine_tag.outputs.tag }}
+          ARCH=${{ matrix.arch }}
+          CID=$(docker create --platform=linux/${ARCH} ${DEST_DOCKER_IMAGE}:${TAG})
+          docker export "$CID" | docker import - ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH}
+          docker rm "$CID"
+
+      - name: Re-apply metadata to squashed image
+        run: |
+          TAG=${{ steps.determine_tag.outputs.tag }}
+          ARCH=${{ matrix.arch }}
+          cat > Dockerfile.slim <<'EOF'
+          ARG BASE
+          FROM ${BASE}
+          ENV PNPM_HOME=/usr/local/pnpm \
+              PATH=/usr/local/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          CMD ["node"]
+          EOF
+          docker build \
+            --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
+            -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
+            -f Dockerfile.slim .
+
+      - name: Push squashed per-arch image
+        run: |
+          TAG=${{ steps.determine_tag.outputs.tag }}
+          ARCH=${{ matrix.arch }}
+          docker push ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH}
+
+  manifest:
+    needs: squash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Create multi-arch manifest for slim image
+        run: |
+          TAG=${{ needs.squash.outputs.tag }}
+          docker buildx imagetools create \
+            -t ${DEST_DOCKER_IMAGE}:${TAG}-slim \
+            ${DEST_DOCKER_IMAGE}:${TAG}-slim-amd64 \
+            ${DEST_DOCKER_IMAGE}:${TAG}-slim-arm64
