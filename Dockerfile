@@ -77,7 +77,7 @@ RUN apt-get update && \
     wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
     tar -xf Python-${PYTHON_VERSION}.tgz && \
     cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-optimizations && \
+    ./configure && \
     make -j `nproc` && \
     make install && \
     echo "Python installed"
