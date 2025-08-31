@@ -6,7 +6,7 @@ on:
     types: [completed]
 
 env:
-  DEST_DOCKER_IMAGE: macstab/nodejs-tools-git-jq-python
+  DEST_DOCKER_IMAGE: macstab/semantic-release-maven-gradle-nodejs-python-git-jq
 
 jobs:
   squash:
@@ -81,6 +81,7 @@ jobs:
           CMD ["node"]
           EOF
           docker build \
+            --platform linux/${ARCH} \
             --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -f Dockerfile.slim .
