@@ -81,6 +81,7 @@ jobs:
           CMD ["node"]
           EOF
           docker build \
+            --platform linux/${ARCH} \
             --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -f Dockerfile.slim .
