@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.4.1...1.5.0) (2025-09-01)
+
+
+### Features
+
+* **build:** fix multi arch build. ([#26](https://github.com/macstab/nodejs-git-jq-python-tools/issues/26)) ([28fca5c](https://github.com/macstab/nodejs-git-jq-python-tools/commit/28fca5c0bdcceefc9d4d20def3069922379f6fa7)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
 ## [1.4.1](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.4.0...1.4.1) (2025-09-01)
 
 
