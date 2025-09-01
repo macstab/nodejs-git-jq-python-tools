@@ -73,16 +73,15 @@ jobs:
         run: |
           TAG=${{ steps.determine_tag.outputs.tag }}
           ARCH=${{ matrix.arch }}
-          cat > Dockerfile.slim <<'EOF'
-          ARG BASE
-          FROM ${BASE}
-          ENV PNPM_HOME=/usr/local/pnpm \
+          BASE_IMAGE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH}
+          cat > Dockerfile.slim <<EOF
+          FROM ${BASE_IMAGE}
+          ENV PNPM_HOME=/usr/local/pnpm \\
               PATH=/usr/local/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           CMD ["node"]
           EOF
           docker build \
             --platform linux/${ARCH} \
-            --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -f Dockerfile.slim .
 
