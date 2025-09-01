@@ -144,8 +144,9 @@ jobs:
       - name: Create multi-arch manifest
         if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success' && steps.latest_release.outputs.data != null
         env:
-          TAG: ${{ fromJson(steps.latest_release.outputs.data).tag_name }}
+          RELEASE_DATA: ${{ steps.latest_release.outputs.data }}
         run: |
+          TAG=$(echo "$RELEASE_DATA" | jq -r '.tag_name')
           docker buildx imagetools create \
             -t ${DEST_DOCKER_IMAGE}:${TAG} \
             ${DEST_DOCKER_IMAGE}:${TAG}-amd64 \
