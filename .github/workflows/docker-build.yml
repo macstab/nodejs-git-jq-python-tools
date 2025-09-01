@@ -61,7 +61,7 @@ jobs:
 
       # Step 5: Build docker image for test only (if not a tag)
       - name: Build docker image for test only
-        if: ${{ steps.check_commit.outputs.skip == 'false' && !startsWith(github.ref, 'refs/tags/') }}
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' &&  github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -118,24 +118,48 @@ jobs:
         env:
           INPUT_FROM_BRANCH: 'main'
           INPUT_TARGET_BRANCH: 'develop'
-      # Step 10: Build and push docker image (only on main branch)
-      - name: Build and push docker image
-        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      # Step 10a: Build and push docker image (only on main branch)
+      - name: Build and push docker image arm64
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success' && steps.latest_release.outputs.data != null
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/arm64
           push: true
-          tags: ${{ env.DEST_DOCKER_IMAGE }}:${{ fromJson(steps.latest_release.outputs.data).tag_name }}
+          tags: ${{ env.DEST_DOCKER_IMAGE }}:${{ fromJson(steps.latest_release.outputs.data).tag_name }}-arm64
 
-      # Step 11: Push to develop-hash tag (only on develop branch)
-      - name: Push to develop-hash tag
-        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+      # Step 10b: Build and push docker image (only on main branch)
+      - name: Build and push docker image amd64
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success' && steps.latest_release.outputs.data != null
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
-          tags: ${{ env.DEST_DOCKER_IMAGE }}:develop-${{ github.sha }}
+          tags: ${{ env.DEST_DOCKER_IMAGE }}:${{ fromJson(steps.latest_release.outputs.data).tag_name }}-amd64
+
+      # Step 11: Create multi-arch manifest
+      - name: Create multi-arch manifest
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success' && steps.latest_release.outputs.data != null
+        env:
+          RELEASE_DATA: ${{ steps.latest_release.outputs.data }}
+        run: |
+          TAG=$(echo "$RELEASE_DATA" | jq -r '.tag_name')
+          docker buildx imagetools create \
+            -t ${DEST_DOCKER_IMAGE}:${TAG} \
+            ${DEST_DOCKER_IMAGE}:${TAG}-amd64 \
+            ${DEST_DOCKER_IMAGE}:${TAG}-arm64
+
+# no development builds for now
+#      # Step 11: Push to develop-hash tag (only on develop branch)
+#      - name: Push to develop-hash tag
+#        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+#        uses: docker/build-push-action@v6
+#        with:
+#          context: .
+#          file: ./Dockerfile
+#          platforms: linux/amd64,linux/arm64
+#          push: true
+#          tags: ${{ env.DEST_DOCKER_IMAGE }}:develop-${{ github.sha }}
