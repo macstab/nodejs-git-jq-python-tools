@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.5.0...1.6.0) (2025-09-01)
+
+
+### Features
+
+* **workflows:** split Docker image builds into platform-specific steps and add multi-arch manifest creation ([#27](https://github.com/macstab/nodejs-git-jq-python-tools/issues/27)) ([0b42218](https://github.com/macstab/nodejs-git-jq-python-tools/commit/0b42218b2140e3670017fb2825dd3753c608998a)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
 # [1.5.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.4.1...1.5.0) (2025-09-01)
 
 
