@@ -120,7 +120,7 @@ jobs:
           INPUT_TARGET_BRANCH: 'develop'
       # Step 10a: Build and push docker image (only on main branch)
       - name: Build and push docker image arm64
-        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outputs.data != ''
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -131,7 +131,7 @@ jobs:
 
       # Step 10b: Build and push docker image (only on main branch)
       - name: Build and push docker image amd64
-        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outputs.data != ''
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -142,7 +142,7 @@ jobs:
 
       # Step 11: Create multi-arch manifest
       - name: Create multi-arch manifest
-        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outputs.data != ''
+        if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success'
         env:
           TAG: ${{ fromJson(steps.latest_release.outputs.data).tag_name }}
         run: |
