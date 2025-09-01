@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.4.0...1.4.1) (2025-09-01)
+
+
+### Bug Fixes
+
+* **build:** update checkout action and fixed build with correct platform tag. ([#25](https://github.com/macstab/nodejs-git-jq-python-tools/issues/25)) ([7d1bc48](https://github.com/macstab/nodejs-git-jq-python-tools/commit/7d1bc48adf56e835c5aa898c69601aa6c2f9b444)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
 # [1.4.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.3.1...1.4.0) (2025-08-20)
 
 
