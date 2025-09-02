@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.6.0...1.7.0) (2025-09-02)
+
+
+### Features
+
+* use tmp image for squashing without metadata ([#28](https://github.com/macstab/nodejs-git-jq-python-tools/issues/28)) ([e985226](https://github.com/macstab/nodejs-git-jq-python-tools/commit/e985226d1290504f6ac03232fd24a9510279853f)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
 # [1.6.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.5.0...1.6.0) (2025-09-01)
 
 
