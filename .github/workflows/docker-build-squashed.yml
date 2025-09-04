@@ -34,7 +34,7 @@ jobs:
 
       - name: Determine tag used by original image
         id: determine_tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const headSha = context.payload.workflow_run.head_sha;
