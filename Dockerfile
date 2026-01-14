@@ -113,7 +113,7 @@ RUN strip --strip-unneeded /usr/local/bin/python3.13 || true
 # Make layer much smaller by removing unnecessary files
 
 # ----------------------------------------------------------
-FROM node:22.17.1-bookworm-slim AS node-builder
+FROM node:22.22.0-bookworm-slim AS node-builder
 ENV NODE_VERSION=22.17.1
 ENV DEBIAN_FRONTEND=noninteractive
 
