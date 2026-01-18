@@ -66,31 +66,27 @@ jobs:
           TAG=${{ steps.determine_tag.outputs.tag }}
           ARCH=${{ matrix.arch }}
           CID=$(docker create --platform=linux/${ARCH} ${DEST_DOCKER_IMAGE}:${TAG})
-          docker export "$CID" | docker import - ${DEST_DOCKER_IMAGE}:${TAG}-slim-base-${ARCH}
+          docker export "$CID" | docker import - ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH}
           docker rm "$CID"
-
-      - name: Push squashed base image (no metadata)
-        run: |
-          TAG=${{ steps.determine_tag.outputs.tag }}
-          ARCH=${{ matrix.arch }}
-          docker push ${DEST_DOCKER_IMAGE}:${TAG}-slim-base-${ARCH}
 
       - name: Re-apply metadata to squashed image
         run: |
           TAG=${{ steps.determine_tag.outputs.tag }}
           ARCH=${{ matrix.arch }}
-          cat > Dockerfile.slim <<EOF
-          FROM ${DEST_DOCKER_IMAGE}:${TAG}-slim-base-${ARCH}
-          ENV PNPM_HOME=/usr/local/pnpm \\
+          cat > Dockerfile.slim <<'EOF'
+          ARG BASE
+          FROM ${BASE}
+          ENV PNPM_HOME=/usr/local/pnpm \
               PATH=/usr/local/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           CMD ["node"]
           EOF
           docker build \
             --platform linux/${ARCH} \
+            --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -f Dockerfile.slim .
 
-      - name: Push final slim image
+      - name: Push squashed per-arch image
         run: |
           TAG=${{ steps.determine_tag.outputs.tag }}
           ARCH=${{ matrix.arch }}
