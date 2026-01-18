@@ -1,4 +1,4 @@
-# Multi-arch Docker image with Node.js, Git, jq, and Python
+# Multi-arch Docker image with Node.js, Git, jq, yq, and Python
 # Supports both arm64 and x86_64 architectures
 # Change versions by setting the ENV variables in each builder stage
 
@@ -6,60 +6,30 @@
 # 1) BUILD STAGES
 ########################
 
-# Set the base image for the builder stage
-FROM debian:bookworm-slim AS git-builder
+# ----------------------------------------------------------
+# Download pre-built jq and yq binaries
+FROM debian:bookworm-slim AS tools-builder
 
-# Avoid prompts from apt
+ENV JQ_VERSION=1.8.1
+ENV YQ_VERSION=4.50.1
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GIT_VERSION=2.52.0
 
 RUN apt-get update && \
-    apt-get install -y wget make gcc autoconf libssl-dev libcurl4-openssl-dev libexpat1-dev gettext zlib1g-dev tar && \
-    wget https://github.com/git/git/archive/refs/tags/v${GIT_VERSION}.tar.gz -O git.tar.gz && \
-    tar -xf git.tar.gz && \
-    cd git-* && \
-    make -j"$(nproc)" \
-        prefix=/usr/local \
-        gitexecdir=/usr/local/libexec/git-core \
-        NO_TCLTK=YesPlease NO_GETTEXT=YesPlease NO_PYTHON=YesPlease NO_PERL=YesPlease \
-        all; \
-    make prefix=/usr/local \
-         NO_INSTALL_HARDLINKS=YesPlease \
-         install && \
-    echo "Git installed in /opt/git-core"
-
-
-# ----------------------------------------------------------
-# set the image for the jq builder stage
-# Start by creating a build stage for jq
-FROM debian:bookworm-slim AS jq-builder
-
-# Arguments for versions (if needed)
-ENV JQ_VERSION=1.8.1
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies for building jq and oniguruma
-RUN apt-get update  \
-    && apt-get install --no-install-recommends -y \
-    autoconf \
-    automake \
-    build-essential \
-    libtool \
-    git \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Clone jq from the official repository
-RUN git clone https://github.com/jqlang/jq.git && \
-    cd jq && \
-    git checkout jq-${JQ_VERSION} && \
-    git submodule update --init && \
-    autoreconf -i && \
-    ./configure --with-oniguruma=builtin --prefix=/usr/local && \
-    make LDFLAGS=-all-static && \
-    make -j8 && \
-    make check && \
-    make install
+    apt-get install -y --no-install-recommends wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    ARCH="$(dpkg --print-architecture)" && \
+    if [ "$ARCH" = "amd64" ]; then \
+        JQ_ARCH="linux-amd64"; \
+        YQ_ARCH="linux_amd64"; \
+    elif [ "$ARCH" = "arm64" ]; then \
+        JQ_ARCH="linux-arm64"; \
+        YQ_ARCH="linux_arm64"; \
+    else \
+        echo "Unsupported architecture $ARCH" && exit 1; \
+    fi && \
+    wget -O /usr/local/bin/jq "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-${JQ_ARCH}" && \
+    wget -O /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_${YQ_ARCH}" && \
+    chmod +x /usr/local/bin/jq /usr/local/bin/yq
 
 
 # ----------------------------------------------------------
@@ -117,12 +87,9 @@ COPY --from=node-builder   /opt                                 /opt
 # Python (from python-build-standalone)
 COPY --from=python-builder /opt/python/bin/                     /usr/local/bin/
 COPY --from=python-builder /opt/python/lib/python3.13           /usr/local/lib/python3.13
-# Git
-COPY --from=git-builder    /usr/local/libexec/git-core          /usr/local/libexec/git-core
-COPY --from=git-builder    /usr/local/bin/git                   /usr/local/bin/git
-# jq (static)
-COPY --from=jq-builder     /usr/local/bin/jq                    /usr/local/bin/jq
-COPY --from=jq-builder     /usr/local/lib/                      /usr/local/lib/
+# jq and yq (pre-built binaries)
+COPY --from=tools-builder  /usr/local/bin/jq                    /usr/local/bin/jq
+COPY --from=tools-builder  /usr/local/bin/yq                    /usr/local/bin/yq
 
 
 # ----------------------------------------------------------
@@ -147,9 +114,11 @@ COPY --from=bundle / /
 # Update symlinks for python and python3
 RUN ln -sfn /usr/local/bin/python3.13 /usr/local/bin/python && \
     ln -sfn /usr/local/bin/python3.13 /usr/local/bin/python3 && \
-    ln -sfn /usr/local/libexec/git-core/git /usr/local/bin/git && \
+    echo "deb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list.d/sid.list && \
+    echo 'APT::Default-Release "bookworm";' > /etc/apt/apt.conf.d/99defaultrelease && \
     apt-get update && \
     apt-get install -y --no-install-recommends curl wget ca-certificates fontconfig binutils dumb-init bash openssl libc6 libcurl4 libgcc-s1 && \
+    apt-get install -y -t sid git && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean && \
     ARCH="$(dpkg --print-architecture)" && \
@@ -170,4 +139,5 @@ RUN ln -sfn /usr/local/bin/python3.13 /usr/local/bin/python && \
     echo "Python version: $(python3 --version)" && \
     echo "pnpm version: $(pnpm --version)" && \
     echo "Git version: $(git --version)" && \
-    echo "jq version: $(jq --version)"
+    echo "jq version: $(jq --version)" && \
+    echo "yq version: $(yq --version)"
