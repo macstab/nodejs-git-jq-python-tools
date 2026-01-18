@@ -1,95 +1,95 @@
-# Node22 image with python and git
-This Dockerfile is composed of multiple stages to build various tools from source, such as Git, jq, and Python, targeting different architectures (arm, x86, x64). It utilizes a multi-stage build process to keep the final image size small.
+# Node.js image with Python, Git, and jq
+
+This Dockerfile uses a multi-stage build process to create a lightweight image with Node.js, Git, jq, and Python, supporting both arm64 and x86_64 architectures.
 
 ## Stages
+
 ### Git Builder Stage
-- It starts with a debian:bookworm-slim image as a base for building Git.
-- Environment variables are set to avoid interactive prompts and to specify the Git version.
-- It installs the necessary dependencies for building Git using apt-get.
+- Starts with debian:bookworm-slim as a base for building Git.
+- Installs the necessary dependencies for building Git using apt-get.
 - Downloads the Git source code for the specified version and builds it from source.
-- After Git is built and installed, it creates symbolic links for all Git commands to point to the Git binary. This reduces the size of the image as there's only one Git binary and the rest are just symlinks.
--  tarball of the Git installation directory is created for use in the final image.
+- After Git is built and installed, symlinks are created for Git commands.
 
 ### jq Builder Stage
-- This stage builds jq, a lightweight and flexible command-line JSON processor.
-- The same debian:bookworm-slimbase image is used.
-- It installs build tools and dependencies needed to compile jq from the source.
-- The jq source code is cloned from its official repository and checked out to the specified version.
-- It then builds jq with all its dependencies statically linked.
+- Builds jq, a lightweight and flexible command-line JSON processor.
+- Uses the same debian:bookworm-slim base image.
+- Installs build tools and dependencies needed to compile jq from source.
+- The jq source code is cloned from its official repository and built with static linking.
 
 ### Python Builder Stage
-- This stage builds Python from source.
-- Again, debian:bookworm-slim is the base image.
-- The necessary libraries and tools for building Python are installed via apt-get.
-- Python source code for the specified version is downloaded and compiled with optimizations enabled.
+- Downloads pre-built Python binaries from [python-build-standalone](https://github.com/astral-sh/python-build-standalone).
+- Uses PGO+LTO optimized builds for better performance.
+- Supports both x86_64 and aarch64 architectures automatically.
+- No compilation required - significantly faster builds.
 
-### Final Image Creation
-- The final image is based on node:21.0.0-bookworm-slim.
-- It sets various environment variables for the Node ecosystem tools, such as pm2, node-gyp, and pnpm, along with their respective versions.
-- It copies the previously built Git, Python, and jq binaries and libraries from their respective builder stages.
-- Creates symlinks for Python to ensure python and python3 commands point to the newly installed version.
-- Installs runtime dependencies including curl, wget, and other necessary libraries.
-- Detects the architecture and installs pnpm, a fast, disk space-efficient package manager.
-- Installs pm2 to manage Node.js applications and node-gyp to build native addons.
-- Cleans up the apt cache and lists to reduce image size.
-- The Dockerfile also sets environment variables for the pnpm home directory and adds it to the PATH.
+### Node.js Builder Stage
+- Downloads pre-built Node.js binaries from nodejs.org.
+- Supports both linux-x64 and linux-arm64 architectures.
 
-## Usage instructions and tool information:
+### Bundle Stage
+- Collects all built artifacts into a single scratch image.
+- Copies Node.js, Python, Git, and jq binaries to their final locations.
 
-- Git: Installed from source; use for version control operations.
-- jq: Installed from source; use for JSON processing from the command line.
-- Python: Installed from source; available for running Python applications and scripts.
-- Node.js: Included in the base node image; use for running JavaScript applications.
-- pm2: Installed globally; use to manage Node.js applications.
-- node-gyp: Installed globally; use to compile native addon modules for Node.js.
-- pnpm: Installed globally; use as an efficient and fast package manager for Node.js applications.
+### Final Image
+- Based on debian:bookworm-slim.
+- Copies all tools from the bundle stage.
+- Creates symlinks for Python (python, python3).
+- Installs runtime dependencies (curl, wget, ca-certificates, etc.).
+- Installs pnpm, pm2, and node-gyp globally.
 
-- In summary, this Dockerfile builds the latest versions of Git, jq, and Python from source, tailored to the architecture of the build system. It then combines these with a Node.js environment, along with tools like pm2 and pnpm for application management and dependency management, respectively, into a final Docker image.
+## Usage
 
-## Version-Overview
+### Tools included
 
+| Tool     | Description                                      |
+|----------|--------------------------------------------------|
+| Git      | Version control system (built from source)       |
+| jq       | JSON processor (built from source, static)       |
+| Python   | Programming language (pre-built binary)          |
+| Node.js  | JavaScript runtime (pre-built binary)            |
+| npm      | Node.js package manager                          |
+| yarn     | Alternative package manager                      |
+| pnpm     | Fast, disk space-efficient package manager       |
+| pm2      | Process manager for Node.js applications         |
+| node-gyp | Tool for compiling native addon modules          |
 
-| Tool/Dependency      | Version             | Description                                            |
-|----------------------|---------------------|--------------------------------------------------------|
-| Git                  | 2.50.1              | Version control system                                 |
-| jq                   | 1.8.1               | Lightweight and flexible JSON processor                |
-| Python               | 3.13.0              | Programming language                                   |
-| Node.js              | 22.17.1 (from base) | JavaScript runtime                                     |
-| pm2                  | 6.0.8               | Process manager for Node.js applications               |
-| node-gyp             | 11.2.0              | Tool for compiling native addon modules                |
-| pnpm                 | 10.13.1             | Fast, disk space-efficient package manager             |
-| Debian Base          | bookworm-slim       | Base OS for the builders and final image               |
-| wget                 | (default)           | Network downloader                                     |
-| make                 | (default)           | Build automation tool                                  |
-| gcc                  | (default)           | GNU Compiler Collection                                |
-| autoconf             | (default)           | Tool for configuring source code                       |
-| libssl-dev           | (default)           | SSL development files, libraries                       |
-| libcurl4-openssl-dev | (default)           | Development files for libcurl (OpenSSL)                |
-| libexpat1-dev        | (default)           | XML parsing C library - development kit                |
-| gettext              | (default)           | GNU Internationalization utilities                     |
-| zlib1g-dev           | (default)           | Compression library - development                      |
-| tar                  | (default)           | Utility for manipulating tar archives                  |
-| build-essential      | (default)           | Informational list of build dependencies               |
-| libffi-dev           | (default)           | Foreign Function Interface library                     |
-| libgdbm-dev          | (default)           | GNU dbm database routines (development)                |
-| libc6-dev            | (default)           | GNU C Library: Development Libraries                   |
-| libbz2-dev           | (default)           | Bzip2 compression library - development                |
-| libreadline-dev      | (default)           | GNU readline and history libraries                     |
-| libsqlite3-dev       | (default)           | SQLite 3 development files                             |
-| libncurses5-dev      | (default)           | Developer's libraries for ncurses                      |
-| xz-utils             | (default)           | XZ-format compression utilities                        |
-| tk-dev               | (default)           | Toolkit for TCL and X11 (development)                  |
-| liblzma-dev          | (default)           | XZ-format compression library - dev                    |
-| libgdbm-compat-dev   | (default)           | GNU dbm database routines (legacy support)             |
-| curl                 | (default)           | Data transfer tool with URL syntax                     |
-| ca-certificates      | (default)           | Common CA certificates                                 |
-| fontconfig           | (default)           | Generic font configuration library                     |
-| binutils             | (default)           | GNU assembler, linker and binary utilities             |
-| dumb-init            | (default)           | Simple init system for containers                      |
-| bash                 | (default)           | GNU Bourne Again SHell                                 |
-| openssl              | (default)           | Secure Sockets Layer toolkit - cryptographic utility   |
-| libc6                | (default)           | GNU C Library: Shared libraries                        |
-| libcurl4             | (default)           | Easy-to-use client-side URL transfer library (OpenSSL) |
-| libgcc-s1            | (default)           | GCC support library                                    |
+## Version Overview
 
-Please note that the versions marked with (default) indicate that the Dockerfile does not explicitly set a version, thus the installed version would be the one available by default in the Debian bookworm repositories at the time of the image build.
+| Tool/Dependency | Version       | Source                        |
+|-----------------|---------------|-------------------------------|
+| Node.js         | 24.13.0       | nodejs.org binary             |
+| Python          | 3.13.11       | python-build-standalone       |
+| Git             | 2.52.0        | Built from source             |
+| jq              | 1.8.1         | Built from source (static)    |
+| pm2             | 6.0.14        | npm                           |
+| node-gyp        | 12.1.0        | npm                           |
+| pnpm            | 10.28.0       | GitHub release (static)       |
+| Debian Base     | bookworm-slim | Base OS                       |
+
+### Runtime dependencies (final image)
+
+| Package         | Description                                |
+|-----------------|--------------------------------------------|
+| curl            | Data transfer tool                         |
+| wget            | Network downloader                         |
+| ca-certificates | Common CA certificates                     |
+| fontconfig      | Font configuration library                 |
+| binutils        | GNU binary utilities                       |
+| dumb-init       | Simple init system for containers          |
+| bash            | GNU Bourne Again SHell                     |
+| openssl         | SSL toolkit                                |
+| libc6           | GNU C Library                              |
+| libcurl4        | URL transfer library                       |
+| libgcc-s1       | GCC support library                        |
+
+## Building
+
+```bash
+docker build -t nodejs-git-jq-python-tools .
+```
+
+## Multi-architecture builds
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t nodejs-git-jq-python-tools .
+```

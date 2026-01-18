@@ -66,8 +66,14 @@ jobs:
           TAG=${{ steps.determine_tag.outputs.tag }}
           ARCH=${{ matrix.arch }}
           CID=$(docker create --platform=linux/${ARCH} ${DEST_DOCKER_IMAGE}:${TAG})
-          docker export "$CID" | docker import - ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH}
+          docker export "$CID" | docker import - ${DEST_DOCKER_IMAGE}:${TAG}-slim-base-${ARCH}
           docker rm "$CID"
+
+      - name: Push squashed base image (no metadata)
+        run: |
+          TAG=${{ steps.determine_tag.outputs.tag }}
+          ARCH=${{ matrix.arch }}
+          docker push ${DEST_DOCKER_IMAGE}:${TAG}-slim-base-${ARCH}
 
       - name: Re-apply metadata to squashed image
         run: |
@@ -86,7 +92,7 @@ jobs:
             -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -f Dockerfile.slim .
 
-      - name: Push squashed per-arch image
+      - name: Push final slim image
         run: |
           TAG=${{ steps.determine_tag.outputs.tag }}
           ARCH=${{ matrix.arch }}
