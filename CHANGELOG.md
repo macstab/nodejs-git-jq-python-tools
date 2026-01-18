@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.7.0...1.8.0) (2026-01-18)
+
+
+### Features
+
+* use binary python artifacts ([#33](https://github.com/macstab/nodejs-git-jq-python-tools/issues/33)) ([4c6958a](https://github.com/macstab/nodejs-git-jq-python-tools/commit/4c6958ac36d4b7130dc532084fd223b098f3a316)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
 # [1.7.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.6.0...1.7.0) (2025-09-02)
 
 
