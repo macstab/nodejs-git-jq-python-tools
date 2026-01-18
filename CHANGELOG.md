@@ -1,3 +1,31 @@
+# [1.7.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.6.0...1.7.0) (2025-09-02)
+
+
+### Features
+
+* use tmp image for squashing without metadata ([#28](https://github.com/macstab/nodejs-git-jq-python-tools/issues/28)) ([e985226](https://github.com/macstab/nodejs-git-jq-python-tools/commit/e985226d1290504f6ac03232fd24a9510279853f)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
+# [1.6.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.5.0...1.6.0) (2025-09-01)
+
+
+### Features
+
+* **workflows:** split Docker image builds into platform-specific steps and add multi-arch manifest creation ([#27](https://github.com/macstab/nodejs-git-jq-python-tools/issues/27)) ([0b42218](https://github.com/macstab/nodejs-git-jq-python-tools/commit/0b42218b2140e3670017fb2825dd3753c608998a)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
+# [1.5.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.4.1...1.5.0) (2025-09-01)
+
+
+### Features
+
+* **build:** fix multi arch build. ([#26](https://github.com/macstab/nodejs-git-jq-python-tools/issues/26)) ([28fca5c](https://github.com/macstab/nodejs-git-jq-python-tools/commit/28fca5c0bdcceefc9d4d20def3069922379f6fa7)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
+## [1.4.1](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.4.0...1.4.1) (2025-09-01)
+
+
+### Bug Fixes
+
+* **build:** update checkout action and fixed build with correct platform tag. ([#25](https://github.com/macstab/nodejs-git-jq-python-tools/issues/25)) ([7d1bc48](https://github.com/macstab/nodejs-git-jq-python-tools/commit/7d1bc48adf56e835c5aa898c69601aa6c2f9b444)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
 # [1.4.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.3.1...1.4.0) (2025-08-20)
 
 
