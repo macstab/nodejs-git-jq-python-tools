@@ -34,7 +34,7 @@ jobs:
 
       - name: Determine tag used by original image
         id: determine_tag
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const headSha = context.payload.workflow_run.head_sha;
@@ -79,14 +79,16 @@ jobs:
         run: |
           TAG=${{ steps.determine_tag.outputs.tag }}
           ARCH=${{ matrix.arch }}
-          cat > Dockerfile.slim <<EOF
-          FROM ${DEST_DOCKER_IMAGE}:${TAG}-slim-base-${ARCH}
-          ENV PNPM_HOME=/usr/local/pnpm \\
+          cat > Dockerfile.slim <<'EOF'
+          ARG BASE
+          FROM ${BASE}
+          ENV PNPM_HOME=/usr/local/pnpm \
               PATH=/usr/local/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           CMD ["node"]
           EOF
           docker build \
             --platform linux/${ARCH} \
+            --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -f Dockerfile.slim .
 

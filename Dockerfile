@@ -1,6 +1,6 @@
-# below are set three different builder images, that are building the lastest relase from source code to support
-# any kind of architecture (arm, x86, x64)
-# CHanger the versions by setting the version in the env variable. The versions are set to the latest version
+# Multi-arch Docker image with Node.js, Git, jq, and Python
+# Supports both arm64 and x86_64 architectures
+# Change versions by setting the ENV variables in each builder stage
 
 ########################
 # 1) BUILD STAGES
@@ -11,7 +11,7 @@ FROM debian:bookworm-slim AS git-builder
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GIT_VERSION=2.50.1
+ENV GIT_VERSION=2.52.0
 
 RUN apt-get update && \
     apt-get install -y wget make gcc autoconf libssl-dev libcurl4-openssl-dev libexpat1-dev gettext zlib1g-dev tar && \
@@ -63,58 +63,32 @@ RUN git clone https://github.com/jqlang/jq.git && \
 
 
 # ----------------------------------------------------------
-# Set the base image for the Python builder stage
+# Download pre-built Python from python-build-standalone (PGO+LTO optimized)
 FROM debian:bookworm-slim AS python-builder
 
-ENV PYTHON_VERSION=3.13.0
+ENV PYTHON_VERSION=3.13.11
+ENV PYTHON_BUILD_DATE=20251205
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies and build Python from source
 RUN apt-get update && \
-    apt-get install -y wget build-essential libffi-dev libgdbm-dev libc6-dev \
-    libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev libncursesw5-dev \
-    xz-utils tk-dev liblzma-dev lzma lzma-dev libgdbm-compat-dev && \
-    wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
-    tar -xf Python-${PYTHON_VERSION}.tgz && \
-    cd Python-${PYTHON_VERSION} && \
-    ./configure && \
-    make -j `nproc` && \
-    make install && \
-    echo "Python installed"
-
-# Clean up unnecessary files
-RUN rm -rf /usr/local/lib/python3.13/test \
-           /usr/local/lib/python3.13/__pycache__ \
-           /usr/local/lib/python3.13/*/__pycache__ \
-           /usr/local/share \
-           /usr/local/include \
-           /usr/local/lib/pkgconfig
-
-# Remove Python test suite and caches
-RUN rm -rf /usr/local/lib/python3.13/test \
-           /usr/local/lib/python3.13/__pycache__ \
-           /usr/local/lib/python3.13/*/__pycache__
-
-# Remove C headers and static libs
-RUN rm -rf /usr/local/include/python3.13 \
-           /usr/local/lib/python3.13/config-* \
-           /usr/local/lib/libpython3.13*.a
-
-# Remove pkgconfig metadata
-RUN rm -rf /usr/local/lib/pkgconfig
-
-# Remove docs, locale, manpages
-RUN rm -rf /usr/local/share
-
-# Optionally strip binaries (saves 30–50MB)
-RUN strip --strip-unneeded /usr/local/bin/python3.13 || true
-
-
-# Make layer much smaller by removing unnecessary files
+    apt-get install -y --no-install-recommends wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    ARCH="$(dpkg --print-architecture)" && \
+    if [ "$ARCH" = "amd64" ]; then \
+        PY_ARCH="x86_64"; \
+    elif [ "$ARCH" = "arm64" ]; then \
+        PY_ARCH="aarch64"; \
+    else \
+        echo "Unsupported architecture $ARCH" && exit 1; \
+    fi && \
+    wget -O python.tar.gz "https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_BUILD_DATE}/cpython-${PYTHON_VERSION}+${PYTHON_BUILD_DATE}-${PY_ARCH}-unknown-linux-gnu-install_only_stripped.tar.gz" && \
+    mkdir -p /opt && \
+    tar -xzf python.tar.gz -C /opt && \
+    rm python.tar.gz
 
 # ----------------------------------------------------------
-FROM node:22.17.1-bookworm-slim AS node-builder
-ENV NODE_VERSION=22.17.1
+FROM node:24.13.0-bookworm-slim AS node-builder
+ENV NODE_VERSION=24.13.0
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y wget xz-utils ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -140,9 +114,9 @@ FROM scratch AS bundle
 # Node
 COPY --from=node-builder   /usr/local                           /usr/local
 COPY --from=node-builder   /opt                                 /opt
-# Python
-COPY --from=python-builder /usr/local/bin/                      /usr/local/bin/
-COPY --from=python-builder /usr/local/lib/python3.13            /usr/local/lib/python3.13
+# Python (from python-build-standalone)
+COPY --from=python-builder /opt/python/bin/                     /usr/local/bin/
+COPY --from=python-builder /opt/python/lib/python3.13           /usr/local/lib/python3.13
 # Git
 COPY --from=git-builder    /usr/local/libexec/git-core          /usr/local/libexec/git-core
 COPY --from=git-builder    /usr/local/bin/git                   /usr/local/bin/git
@@ -156,9 +130,9 @@ FROM debian:bookworm-slim
 LABEL maintainer="Nolem / Per! <schnapka.christian@googlemail.com>"
 
 # Set versions as build arguments
-ENV PM2_VERSION=6.0.8
-ENV NODE_GYP_VERSION=11.2.0
-ENV PNPM_VERSION=10.13.1
+ENV PM2_VERSION=6.0.14
+ENV NODE_GYP_VERSION=12.1.0
+ENV PNPM_VERSION=10.28.0
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
