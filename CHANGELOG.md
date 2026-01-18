@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.8.0...1.9.0) (2026-01-18)
+
+
+### Features
+
+* improve the speed and try to use precompiled binaries ([#34](https://github.com/macstab/nodejs-git-jq-python-tools/issues/34)) ([c646a83](https://github.com/macstab/nodejs-git-jq-python-tools/commit/c646a833334a9c879e5c4c5014cc2839e291edd6)), closes [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19) [#22](https://github.com/macstab/nodejs-git-jq-python-tools/issues/22) [#19](https://github.com/macstab/nodejs-git-jq-python-tools/issues/19)
+
 # [1.8.0](https://github.com/macstab/nodejs-git-jq-python-tools/compare/1.7.0...1.8.0) (2026-01-18)
 
 
