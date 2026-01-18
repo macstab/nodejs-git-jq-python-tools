@@ -86,9 +86,10 @@ jobs:
               PATH=/usr/local/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           CMD ["node"]
           EOF
+          sed -i 's/^          //' Dockerfile.slim
           docker build \
             --platform linux/${ARCH} \
-            --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
+            --build-arg BASE=${DEST_DOCKER_IMAGE}:${TAG}-slim-base-${ARCH} \
             -t ${DEST_DOCKER_IMAGE}:${TAG}-slim-${ARCH} \
             -f Dockerfile.slim .
 
