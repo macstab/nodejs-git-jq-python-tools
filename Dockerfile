@@ -57,7 +57,7 @@ RUN apt-get update && \
     rm python.tar.gz
 
 # ----------------------------------------------------------
-FROM node:24.13.0-bookworm-slim AS node-builder
+FROM node:24.13.1-bookworm-slim AS node-builder
 ENV NODE_VERSION=24.13.0
 ENV DEBIAN_FRONTEND=noninteractive
 
