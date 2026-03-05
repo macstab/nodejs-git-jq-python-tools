@@ -58,7 +58,7 @@ jobs:
       # Step 5: Build docker image for test only (if not a tag)
       - name: Build docker image for test only
         if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' &&  github.event_name != 'pull_request'
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -117,7 +117,7 @@ jobs:
       # Step 10a: Build and push docker image (only on main branch)
       - name: Build and push docker image arm64
         if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success' && steps.latest_release.outputs.data != null
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -128,7 +128,7 @@ jobs:
       # Step 10b: Build and push docker image (only on main branch)
       - name: Build and push docker image amd64
         if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.latest_release.outcome == 'success' && steps.latest_release.outputs.data != null
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
