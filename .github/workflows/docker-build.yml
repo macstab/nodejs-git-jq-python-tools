@@ -96,7 +96,7 @@ jobs:
       - name: Get latest release
         if: steps.check_commit.outputs.skip == 'false' && github.ref == 'refs/heads/main'
         id: latest_release
-        uses: octokit/request-action@v2.x
+        uses: octokit/request-action@v2.4.0
         with:
           route: GET /repos/${{ github.repository }}/releases/latest
         env:
